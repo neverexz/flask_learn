@@ -1,0 +1,36 @@
+from flask import Flask, request, jsonify
+from flask_restful import Api, Resource, reqparse, abort
+
+app = Flask(__name__)
+api = Api(app)
+
+tasks = []
+
+class TaskResource(Resource):
+    def post(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument('task_description', type=str, required=True, help='Description of the task')
+        parser.add_argument('task_schema', type=str, required=True, help='Schema of the task')
+        parser.add_argument('actions', type=list, required=True, help='List of possible actions')
+        parser.add_argument('max_count', type=int, required=True, help='Maximum number of actions')
+
+        args = parser.parse_args(strict=True)
+
+        # Validate if 'actions' is a list of strings
+        if not all(isinstance(action, str) for action in args['actions']):
+            abort(400, message='Actions must be a list of strings')
+
+        # Process the task (simplified example)
+        command_list = []
+        for action in args['actions']:
+            command_list.append(f"Performing action: {action}")
+
+        # Store the task or perform other necessary actions
+        tasks.append(args)
+
+        return jsonify({'commandList': command_list}), 200
+
+api.add_resource(TaskResource, '/tasks')
+
+if __name__ == '__main__':
+    app.run(debug=True, port=8080)
